@@ -1,0 +1,88 @@
+{
+  lib,
+  stdenv,
+  fetchFromGitHub,
+  iptables,
+  iproute2,
+  makeWrapper,
+  openresolv,
+  procps,
+  bash,
+  amneziawg-go,
+  nix-update-script,
+}:
+
+stdenv.mkDerivation rec {
+  pname = "amneziawg-tools";
+  version = "1.0.20240213";
+
+  src = fetchFromGitHub {
+    owner = "amnezia-vpn";
+    repo = "amneziawg-tools";
+    rev = "v${version}";
+    hash = "sha256-QQtAEAsZ5O7gm++wum3rRV7BMaRZ6kP+0EjGE2iqcYw=";
+  };
+
+  outputs = [
+    "out"
+    "man"
+  ];
+
+  sourceRoot = "${src.name}/src";
+
+  nativeBuildInputs = [ makeWrapper ];
+
+  buildInputs = [ bash ];
+
+  makeFlags = [
+    "DESTDIR=$(out)"
+    "PREFIX=/"
+    "WITH_BASHCOMPLETION=yes"
+    "WITH_SYSTEMDUNITS=yes"
+    "WITH_WGQUICK=yes"
+  ];
+
+  postFixup =
+    ''
+      substituteInPlace $out/lib/systemd/system/awg-quick@.service \
+        --replace /usr/bin $out/bin
+    ''
+    + lib.optionalString stdenv.isLinux ''
+      for f in $out/bin/*; do
+        # Which firewall and resolvconf implementations to use should be determined by the
+        # environment, we provide the "default" ones as fallback.
+        wrapProgram $f \
+          --prefix PATH : ${
+            lib.makeBinPath [
+              procps
+              iproute2
+            ]
+          } \
+          --suffix PATH : ${
+            lib.makeBinPath [
+              iptables
+              openresolv
+            ]
+          }
+      done
+    ''
+    + lib.optionalString stdenv.isDarwin ''
+      for f in $out/bin/*; do
+        wrapProgram $f \
+          --prefix PATH : ${lib.makeBinPath [ amneziawg-go ]}
+      done
+    '';
+
+  strictDeps = true;
+
+  passthru.updateScript = nix-update-script { };
+
+  meta = {
+    description = "Tools for configuring Amnezia-WG";
+    homepage = "https://amnezia.org/";
+    license = lib.licenses.gpl2Only;
+    maintainers = with lib.maintainers; [ averyanalex ];
+    platforms = lib.platforms.unix;
+    mainProgram = "awg";
+  };
+}
