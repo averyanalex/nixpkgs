@@ -6,36 +6,37 @@
   nix-update-script,
 }:
 
-stdenv.mkDerivation rec {
+stdenv.mkDerivation (finalAttrs: {
   pname = "amneziawg";
   version = "1.0.20240711";
 
   src = fetchFromGitHub {
     owner = "amnezia-vpn";
     repo = "amneziawg-linux-kernel-module";
-    rev = "v${version}";
+    rev = "refs/tags/v${finalAttrs.version}";
     hash = "sha256-WOcBTxetVz2Sr62c+2aGNyohG2ydi+R+az+4qHbKprI=";
   };
 
+  sourceRoot = "${finalAttrs.src.name}/src";
+  hardeningDisable = [ "pic" ];
   nativeBuildInputs = kernel.moduleBuildDependencies;
-
-  preBuild = ''
-    cd src
-    ln -s ${kernel.src} kernel
-  '';
 
   buildFlags = [
     "apply-patches"
     "module"
   ];
 
-  makeFlags = kernel.makeFlags ++ [
-    "KERNELDIR=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build"
-  ];
+  makeFlags =
+    kernel.makeFlags
+    ++ lib.optional (lib.versionAtLeast kernel.version "5.6") "KERNEL_SOURCE_DIR=${kernel.src}"
+    ++ [ "KERNELDIR=${kernel.dev}/lib/modules/${kernel.modDirVersion}/build" ];
 
-  INSTALL_MOD_PATH = placeholder "out";
-  installFlags = [ "DEPMOD=true" ];
   enableParallelBuilding = true;
+
+  installFlags = [
+    "DEPMOD=true"
+    "INSTALL_MOD_PATH=${placeholder "out"}"
+  ];
 
   passthru.updateScript = nix-update-script { };
 
@@ -46,4 +47,4 @@ stdenv.mkDerivation rec {
     maintainers = with lib.maintainers; [ averyanalex ];
     platforms = lib.platforms.linux;
   };
-}
+})
