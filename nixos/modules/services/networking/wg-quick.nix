@@ -373,13 +373,13 @@ in {
   config = mkIf (cfg.interfaces != {}) {
     boot.extraModulePackages =
       optional (
-        any (x: x.type == "wireguard") (attrValues cfg.interface)
+        any (x: x.type == "wireguard") (attrValues cfg.interfaces)
         && (versionOlder kernel.kernel.version "5.6")
       ) kernel.wireguard
-      ++ optional (any (x: x.type == "amneziawg") (attrValues cfg.interface)) kernel.amneziawg;
+      ++ optional (any (x: x.type == "amneziawg") (attrValues cfg.interfaces)) kernel.amneziawg;
     environment.systemPackages =
-      optional (any (x: x.type == "wireguard") (attrValues cfg.interface)) pkgs.wireguard-tools
-      ++ optional (any (x: x.type == "amneziawg") (attrValues cfg.interface)) pkgs.amneziawg-tools;
+      optional (any (x: x.type == "wireguard") (attrValues cfg.interfaces)) pkgs.wireguard-tools
+      ++ optional (any (x: x.type == "amneziawg") (attrValues cfg.interfaces)) pkgs.amneziawg-tools;
     systemd.services = mapAttrs' generateUnit cfg.interfaces;
 
     # Prevent networkd from clearing the rules set by wg-quick when restarted (e.g. when waking up from suspend).
