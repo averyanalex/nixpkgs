@@ -9664,7 +9664,6 @@ with pkgs;
   nerdctl = callPackage ../applications/networking/cluster/nerdctl { };
 
   netdata = callPackage ../tools/system/netdata {
-    inherit (darwin.apple_sdk.frameworks) CoreFoundation IOKit;
     protobuf = protobuf_21;
   };
   netdataCloud = netdata.override {
@@ -14528,7 +14527,9 @@ with pkgs;
 
   undistract-me = callPackage ../shells/bash/undistract-me { };
 
-  carapace = callPackage ../shells/carapace { };
+  carapace = callPackage ../shells/carapace {
+    buildGoModule = buildGo123Module;
+  };
 
   dash = callPackage ../shells/dash { };
 
@@ -18954,11 +18955,6 @@ with pkgs;
   swiftshader = callPackage ../development/libraries/swiftshader { };
 
   systemfd = callPackage ../development/tools/systemfd { };
-
-  swig3 = callPackage ../development/tools/misc/swig/3.x.nix { };
-  swig4 = callPackage ../development/tools/misc/swig/4.nix { };
-  swig = swig4;
-  swigWithJava = swig;
 
   c2ffi = callPackage ../development/tools/misc/c2ffi { };
 
@@ -32027,9 +32023,7 @@ with pkgs;
 
   open-policy-agent = callPackage ../development/tools/open-policy-agent { };
 
-  openmm = callPackage ../development/libraries/science/chemistry/openmm {
-    swig = swig4;
-  };
+  openmm = callPackage ../development/libraries/science/chemistry/openmm { };
 
   openshift = callPackage ../applications/networking/cluster/openshift { };
 
@@ -32999,11 +32993,7 @@ with pkgs;
 
   rke = callPackage ../applications/networking/cluster/rke { };
 
-  inherit (callPackage ../applications/networking/cluster/rke2 {
-    buildGoModule = buildGo121Module;
-    go = go_1_21;
-  }) rke2_stable;
-  inherit (callPackage ../applications/networking/cluster/rke2 { }) rke2_latest rke2_testing;
+  inherit (callPackage ../applications/networking/cluster/rke2 { }) rke2_stable rke2_latest rke2_testing;
   rke2 = rke2_stable;
 
   rocketchat-desktop = callPackage ../applications/networking/instant-messengers/rocketchat-desktop { };
@@ -35111,8 +35101,6 @@ with pkgs;
   enyo-launcher = libsForQt5.callPackage ../games/doom-ports/enyo-launcher { };
 
   eternity = callPackage ../games/doom-ports/eternity-engine { };
-
-  gzdoom = callPackage ../games/doom-ports/gzdoom { };
 
   odamex = callPackage ../games/doom-ports/odamex { };
 
@@ -37630,9 +37618,6 @@ with pkgs;
 
   faiss = callPackage ../development/libraries/science/math/faiss {
     pythonPackages = python3Packages;
-    # faiss wants the "-doxygen" option
-    # available only since swig4
-    swig = swig4;
   };
 
   faissWithCuda = faiss.override {
