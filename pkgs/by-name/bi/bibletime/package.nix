@@ -7,6 +7,7 @@
   docbook_xsl_ns,
   fetchFromGitHub,
   perlPackages,
+  gettext,
   pkg-config,
   qt5,
   stdenv,
@@ -38,6 +39,7 @@ stdenv.mkDerivation (finalAttrs: {
     pkg-config
     wrapQtAppsHook
     perlPackages.Po4a
+    gettext
   ];
 
   buildInputs = [
@@ -69,6 +71,6 @@ stdenv.mkDerivation (finalAttrs: {
     license = lib.licenses.gpl2Plus;
     mainProgram = "bibletime";
     maintainers = with lib.maintainers; [ AndersonTorres ];
-    platforms = lib.platforms.linux;
+    platforms = lib.platforms.all;
   };
 })
